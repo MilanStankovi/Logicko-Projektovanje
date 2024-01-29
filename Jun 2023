@@ -1,0 +1,114 @@
+--20.6.2023
+--1.
+entity INV is
+port (A : in bit;
+      F : out bit);
+end entity;
+architecture INV_arch of INV is
+begin
+F <= not A;
+end architecture;
+
+entity ADD4 is
+port (A, B, C, D : in bit;
+      F : out bit);
+end entity;
+architecture ADD4_arch of ADD4 is
+begin
+F <= A and B and C and D;
+end architecture;
+
+entity OR4 is
+port (A, B, C, D : in bit;
+      F : out bit);
+end entity;
+architecture OR4_arch of OR4 is
+begin
+F <= A or B or C or D;
+end architecture;
+
+entity SystemI is
+port (A, B, C, D : in bit;
+      F : out bit);
+end entity;
+architecture SystemI_arch of SystemI is
+component INV is
+port (A : in bit;
+      F : out bit);
+end component;
+component ADD4 is
+port (A, B, C, D : in bit;
+      F : out bit);
+end component;
+component OR4 is
+port (A, B, C, D : in bit;
+      F : out bit);
+end component;
+signal s1, s2, s3, s4, An, Bn, Cn, Dn : bit;
+begin
+U1 : INV port map (A => A, F => An);
+U2 : INV port map (A => B, F => Bn);
+U3 : INV port map (A => C, F => Cn);
+U4 : INV port map (A => D, F => Dn);
+
+U5 : ADD4 port map (A => An, B => Bn, C => Cn, D => D, F => s1);
+U6 : ADD4 port map (A => An, B => Bn, C => C, D => D, F => s2);
+U7 : ADD4 port map (A => An, B => Bn, C => Cn, D => D, F => s3);
+U8 : ADD4 port map (A => A, B => Bn, C => C, D => D, F => s4);
+
+U9 : OR4 port map (A => s1, B => s2, C => s3, D => s4, F => F);
+end architecture;
+
+
+--2.
+Library IEEE;
+using IEEE.std_logic_1164.all;
+entity Automat is
+port (Clock, Reset : in std_logic;
+      A : in bit;
+      F : out bit);
+end entity;
+architecture Automat_arch of Automat is
+type State_type (s0, s1, s2, s3);
+signal trenutno_stanje, sledece_stanje : State_type;
+begin
+memorija : process (Clock,Reset) begin
+if (Reset = '0') then
+trenutno_stanje <= s0;
+elsif (rising_edge(Clock)) then
+strenutno_stanje <= sledece_stanje;
+end if;
+end process;
+logika_stanja : process (trenutno_stanje, A) begin
+case (trenutno_stanje) is
+when s0 => if (A = '1') then
+           sledece_stanje <= s2;
+           else
+           sledece_stanje <= s1;
+           end if;
+when s1 => if (A = '1') then
+           sledece_stanje <= s3;
+           else
+           sledece_stanje <= s0;
+           end if;
+when s2 => if (A = '1') then
+           sledece_stanje <= s0;
+           else
+           sledece_stanje <= s3;
+           end if;
+when s3 => if (A = '1') then
+           sledece_stanje <= s1;
+           else
+           sledece_stanje <= s2;
+           end if;
+end case;
+end process;
+logika_izlaza : process (trenutno_stanje, A) begin
+case (trenutno_stanje) is
+when s0 => F <= 1;
+when s1 => F <= 0;
+when s2 => F <= 0;
+when s3 => F <= 0;
+end case;
+end process;
+end architecture;
