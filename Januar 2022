@@ -1,0 +1,109 @@
+--1.
+entity demux_1to8 is
+port (A : in bit;
+      Sel : in bit_vector (2 downto 0);
+      F : out bit_vector (7 downto 0));
+end entity;
+architecture demux_1to8_arch of demux_1to8 is
+begin
+F(0) <= A and not Sel(2) and not Sel(1) and not Sel(0);
+F(1) <= A and not Sel(2) and not Sel(1) and Sel(0);
+F(2) <= A and not Sel(2) and Sel(1) and not Sel(0);
+F(3) <= A and not Sel(2) and Sel(1) and Sel(0);
+F(4) <= A and Sel(2) and not Sel(1) and not Sel(0);
+F(5) <= A and Sel(2) and not Sel(1) and Sel(0);
+F(6) <= A and Sel(2) and Sel(1) and not Sel(0);
+F(7) <= A and Sel(2) and Sel(1) and Sel(0);
+end architecture;
+
+entity demux_1to8_TB is
+end entity;
+architecture demux_1to8_TB-arch of demux_1to8_TB is
+component demux_1to8 is
+port (A : in bit;
+      Sel : in bit_vector (2 downto 0);
+      F : out bit_vector (7 downto 0));
+end component;
+signal A_TB : bit;
+signal Sel_TB : bit_vector (2 downto 0);
+signal F_TB : bit_vector (7 downto 0);
+begin
+DUT1 : demux_1to8 port map (A => A_TB, Sel => Sel_TB, F => F_TB);
+STIMULUS : process begin
+Sel <= "000";
+A <= 1;
+wait for 100 ps;
+Sel <= "011";
+A <= 1;
+wait for 100 ps;
+end process;
+end architecture;
+
+--2.
+Library IEEE;
+using IEEE.std_logic_1164.all;
+entity fs2_behavioral is
+port (Clock, Reset : in std_Logic;
+      Din : in std_logic;
+      Dout : out std_logic);
+end entity;
+architecture fs2_behavioral_arch of fs2_behavioral is
+type State_type (s0, s1, s2, s3);
+signal trenutno_stanje, sledece_stanje : State_type;
+begin
+memorija : process (Clock, Reset) begin
+if (Reset = '0') then
+trenutno_stanje <= s0;
+elsif (rising_edge(Clock)) then
+trenutno_stanje <= sledece_stanje;
+end if;
+end process;
+logika_stanja : process (trenutno_stanje, Din) begin
+case (trenutno_stanje) is
+when s0 => if (Din = '1') then
+           sledece_stanje <= s1;
+           else
+           sledece_stanje <= s0;
+           end if;
+when s1 => if (Din = '1') then
+           sledece_stanje <= s3;
+           else
+           sledece_stanje <= s1;
+           end if;
+when s2 => if (Din = '1') then
+           sledece_stanje <= s3;
+           else
+           sledece_stanje <= s0;
+           end if;
+when s3 => if (Din = '1') then
+           sledece_stanje <= s0;
+           else
+           sledece_stanje <= s3;
+           end if;
+end case;
+end process;
+logika_izlaza : process (trenutno_stanje, Din) begin
+case (trenutno_stanje) is
+when s0 => if (Din = '1') then
+           Dout <= '1';
+           else
+           Dout <= '0';
+           end if;
+when s1 => if (Din = '1') then
+           Dout <= '0';
+           else
+           Dout <= '1';
+           end if;
+when s2 => if (Din = '1') then
+           Dout <= '1';
+           else
+           Dout <= '0';
+           end if;
+when s3 => if (Din = '1') then
+           Dout <= '1';
+           else
+           Dout <= '0';
+           end if;
+end case;
+end process;
+end architecture;
