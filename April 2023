@@ -17,6 +17,38 @@ F <= "000" when "00000001",
      "111" when "10000000";
 end architecture;
 
+entity encoder_8to3_binary_TB is
+end entity;
+architecture encoder_8to3_binary_TB_arch of encoder_8to3_binary_TB is
+component encoder_8to3_binary is
+port (A : in bit_vector (7 downto 0);
+      F : out bit_vector (7 downto 0));
+end component;
+signal A_TB : bit_vector (7 downto 0);
+signal F_TB : bit_vector (7 downto 0);
+begin
+DUT1 : encoder_8to3_binary port map (A => A_TB, F => F_TB);
+STIMULUS process
+signal i : integer;
+file Fout : TEXT open WRITE_MODE is "izlaz.txt";
+file Fin : TEXT open READ_MODE is "ulaz.txt";
+variable wirte_line : line;
+variable read_line : line;
+begin
+write (write_line, string'(Input : A, Output : F));
+writeline (Fout, write_line);
+for i in 0 to 8 loop
+readline (Fin, read_line);
+read (read_line, A_TB);
+wait for 10 ns;
+write (write_line, string'("A= "));
+write (write_line, A_TB);
+write (write_line, string'(" F= "));
+write (write_line, F_TB);
+writeline(Fout, write_line);
+end loop;
+end process;
+end architecture;
 --2.
 Library IEEE;
 using IEEE.std_logic_1164.all;
