@@ -1,0 +1,92 @@
+--1.
+entity 1_to8_demux is
+port (A : in bit;
+      Sel : in bit_vector(2 downto 0);
+      F : out bit_vector(7 downto 0));
+end entity;
+architecture 1_to8_demux_arch of 1_to8_demux is
+begin
+F(0) <= A and not Sel(0) and not Sel(1) and not Sel(2);
+F(1) <= A and not Sel(0) and not Sel(1) and Sel(2);
+F(2) <= A and not Sel(0) and Sel(1) and not Sel(2);
+F(3) <= A and not Sel(0) and Sel(1) and Sel(2);
+F(4) <= A and Sel(0) and not Sel(1) and not Sel(2);
+F(5) <= A and Sel(0) and not Sel(1) and Sel(2);
+F(6) <= A and Sel(0) and Sel(1) and not Sel(2);
+F(7) <= A and Sel(0) and Sel(1) and Sel(2);
+end architecture;
+
+--2.
+Library IEEE;
+using IEEE.std_logic_1164.all;
+entity rw_8x2 is
+port (Clock : in std_logic;
+      Address : in std_logic_vector(2 downto 0);
+      Data_In : in std_logic_vector(1 downto 0);
+      WE : in std_logic;
+      Data_Out : out std_logic_vector(1 downto 0));
+end entity;
+architecture rw_8x2_arch of rw_8x2 is
+type RW_type is array (0 to 8) of std_logic_vector(1 downto 0);
+signal RW : RW_type;
+begin
+memorija : process (Clock) begin
+if (rising_edge(Clock)) then
+  if (WE = '1') then
+  RW(to_integer(unsigned(address))) <= Data_In;
+  elsif( WE = '0') then
+  Data_Out <= RW(to_integer(unsigned(address)));
+  end if;
+end if;
+end process;
+
+entity rw_8x2_TB is
+end entity;
+architecture rw_8x2_TB_arch of rw_8x2_TB is
+component rw_8x2 is
+port (Clock : in std_logic;
+      Address : in std_logic_vector(2 downto 0);
+      Data_In : in std_logic_vector(1 downto 0);
+      WE : in std_logic;
+      Data_Out : out std_logic_vector(1 downto 0));
+end component;
+signal Clock_TB : std_logic;
+signal Address_TB : std_logic_vector(2 downto 0);
+signal Data_In_TB : std_logic_vector(1 downto 0);
+signal WE_TB : std_logic;
+signal Data_Out_TB : std_logic_vector(1 downto 0);
+begin
+DUT1 : rw_8x2 port map (Clock => Clock_TB, Address => Address_TB, Data_In => Data_In_TB,
+                        WE => WE_TB, Data_Out => Data_Out_TB);
+clock_proc : process begin
+Clock_TB <= '0' wait for 10 ns;
+Clock_TB <= '1' wait for 10 ns;
+end process;
+
+STIMULUS : process
+signal i : integer;
+begin
+WE_TB <= '0';
+for i in 0 to 7 loop
+wait until rising_edge(Clock_TB);
+Address_TB <= std_logic_vector(to_unsigned(i,3));
+report "Address= " & Address_TB'image &
+Data_Out = " & Data_Out_TB'image;
+end loop;
+
+WE <= '1';
+for i in 0 to 7 loop
+wait until rising_edge(Clock_TB);
+Address_TB <= std_logic_vector(to_unsigned(i,3));
+Data_In_TB <= std_logic_vector(to_unsigned(i, 2));
+end loop;
+
+WE <= '0';
+for i in 0 to 7 loop
+Address_TB <= std_logic_vector(to_unsigned(i,3));
+report "Address = " & Address_TB'image &
+"Data_Out = " & Data_Out_TB'image;
+end loop;
+wait for 100 ps;
+end process;
+end architecture;
