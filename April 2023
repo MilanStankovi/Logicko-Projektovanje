@@ -37,7 +37,7 @@ variable read_line : line;
 begin
 write (write_line, string'(Input : A, Output : F));
 writeline (Fout, write_line);
-for i in 0 to 8 loop
+for i in 0 to 7 loop
 readline (Fin, read_line);
 read (read_line, A_TB);
 wait for 10 ns;
