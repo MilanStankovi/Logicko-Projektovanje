@@ -1,0 +1,102 @@
+--1.
+entity INV is
+port (A : in bit;
+      F : out bit);
+end entity;
+architecture INV_arch of INV is
+begin
+F <= not A;
+end architecture;
+
+entity ADD4 is
+port (A, B, C, D : in bit;
+      F : out bit);
+end entity;
+architecture ADD4_arch of ADD4 is
+begin
+F <= A and B and C and D;
+end architecture;
+
+entity OR4 is
+port (A, B, C, D : in bit;
+      F : out bit);
+end entity;
+architecture OR4_arch of OR4 is
+begin
+F <= A or B or C or D;
+end architecture;
+
+entity SystemI is
+port (A, B, C, D : in bit;
+      F : out bit);
+end entity;
+architecture SystemI is
+component INV is
+port (A : in bit;
+      F : out bit);
+end component;
+component ADD4 is
+port (A, B, C, D : in bit;
+      F : out bit);
+end component;
+component OR4 is
+port (A, B, C, D : in bit;
+      F : out bit);
+end component;
+signal An, Bn, Cn, Dn, s1, s2, s3, s4 : bit;
+begin
+U1 : INV port map (A => A, F => An);
+U2 : INV port map (B => B, F => Bn);
+U3 : INV port map (C => C, F => Cn);
+U4 : INV port map (D => D, F => Dn);
+
+U5 : ADD4 port map (A => An, B => Bn, C => Cn, D => D, F => s1);
+U6 : ADD4 port map (A => An, B => Bn, C => C, D => D, F => s2);
+U7 : ADD4 port map (A => A, B => Bn, C => Cn, D => D, F => s3);
+U8 : ADD4 port map (A => A, B => Bn, C => C, D => D, F => s4);
+
+U9 : OR4 port map (A => s1, B => s2, C => s3, D => s4, F => F);
+end architecture;
+
+--2.
+Library IEEE;
+using IEEE.std_logic_1164.all;
+entity fsm1_behavioral is
+port (Clock, Reset : in std_logic;
+      Din : in std_logic;
+      Dout : out std_logic);
+end entity;
+architecture fsm1_behavioral-arch of fsm1_behavioral is
+type State_type is (Start, Midway, Done);
+signal trenutno_stanje, sledece_stanje : State_type;
+begin
+memorija : process (Clock, Reset) begin
+if (Reset = '0') then
+trenutno_stanje <= Start;
+elsif(rising_edge(Clock)) then
+trenutno_stanje <= sledece_stanje;
+end if;
+end process;
+logika_stanja : process (trenutno_stanje, Din) begin
+case (trenutno_stanje) is
+when Start => if (Din = '1') then
+              sledece_stanje <= Midway;
+              else
+              sledece_stanje <= Start;
+              end if;
+when Midway => sledece_stanje <= Done;
+when Start => sledece_stanje <= Start;
+end case;
+end process;
+logika_izlaza : process (trenutno_stanje, Din) begin
+case (trenutno_stanje) is
+when Start => Dout <= '0';
+when Midway => Dout <= '0';
+when Done => if (Din = '1') then
+             Dout <= '1';
+             else
+             Dout <= '0';
+             end if;
+end case;
+end process;
+end architecture;
