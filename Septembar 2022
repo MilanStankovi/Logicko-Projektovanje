@@ -1,0 +1,81 @@
+--1.
+entity encoder_8to3_binary is
+port (A : in bit_vector(7 downot 0);
+      F : out bit_vector(2 downto 0));
+end entity;
+architecture encoder_8to3_binary_arch of encoder_8to3_binary  is
+begin
+with (A) select
+F <= "000" when "00000001",
+     "001" when "00000010",
+     "010" when "00000100",
+     "011" when "00001000",
+     "100" when "00010000",
+     "101" when "00100000",
+     "110" when "01000000",
+     "111" when "10000000";
+end architecture;
+
+--2.
+Library IEEE;
+using IEEE.std_logic_1164;
+entity rw_4x4 is
+port (Address : in std_logic_vector (1 downto 0);
+      Data_In : in std_logic_vector (3 downto 0);
+      WE : in std_logic;
+      Data_Out : out std_logic_vector (3 downto 0));
+end entity;
+architecture rw_4x4_arch of rw_4x4 is
+type RW_type is array (0 to 3) of std_logic_vector (3 downto 0);
+signal RW : RW_type;
+begin
+memorija : process (Address, Data_In, WE) begin
+if (WE = '1') then
+RW(to_integer(unsigned(Address))) <= Data_In;
+else
+Data_Out <= RW(to_integer(unsigned(Address)));
+end if;
+end process;
+end architecture;
+
+entity rw_4x4_TB is
+end entity;
+architecture rw_4x4_TB_arch of rw_4x4_TB is
+component rw_4x4 is
+port (Address : in std_logic_vector (1 downto 0);
+      Data_In : in std_logic_vector (3 downto 0);
+      WE : in std_logic;
+      Data_Out : out std_logic_vector (3 downto 0));
+end component;
+Address_TB : std_logic_vector (1 downto 0);
+Data_In_TB : std_logic_vector (3 downto 0);
+WE_TB : std_logic;
+Data_Out_TB : std_logic_vector (3 downto 0);
+begin
+DUT1 : rw_4x4 port map (Address => Address_TB, Data_In => Data_In_TB,
+                        WE => WE_TB, Data_Out => Data_Out_TB);
+STIMULUS : process 
+signal i : integer;
+begin
+WE <= '0';
+for i in 0 to 4 loop
+Address_TB = std_logic_vector(to_unsigned(i,4));
+report "Address = " & Address_TB'image &
+       "Data_Out = " & Data_Out_TB'image;
+end loop;
+wait for 100 ns;
+WE <= '1';
+for i in 0 to 4 loop
+Address_TB <= std_logic_vector(to_unsigned(i,4));
+Data_In <= std_logic_vector(to_unsigned(i,4));
+end loop;
+wait for 100 ns;
+WE <= '0';
+for i in 0 to 4 loop
+Address_TB = std_logic_vector(to_unsigned(i,4));
+report "Address = " & Address_TB'image &
+       "Data_Out = " & Data_Out_TB'image;
+end loop;
+wait for 100 ns;
+end process;
+end architecture;
