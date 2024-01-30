@@ -1,0 +1,55 @@
+--1.
+entity mux_8to1 is
+port (A : in bit_vector (7 downto 0);
+      Sel : in bit_vector (2 downto 0);
+      F : out bit);
+end entity;
+architecture mux_8to1_arch of mux_8to1 is
+begin
+F <= (A(0) and not SEl(0) and not Sel(1) and not Sel(2)) or
+     (A(1) and not SEl(0) and not Sel(1) and Sel(2)) or
+     (A(2) and not SEl(0) and Sel(1) and not Sel(2)) or
+     (A(3) and not SEl(0) and Sel(1) and Sel(2)) or
+     (A(4) and SEl(0) and not Sel(1) and not Sel(2)) or
+     (A(5) and SEl(0) and not Sel(1) and Sel(2)) or
+     (A(6) and SEl(0) and Sel(1) and not Sel(2)) or
+     (A(7) and SEl(0) and Sel(1) and Sel(2));
+end architecture;
+--2.
+Library IEEE;
+using IEEE.std_logic_1164.all;
+entity rom_4x4 is
+port (Address : in std_logic_vector (1 downto 0);
+      Data_Out : out std_logic_vector (3 downto 0));
+end entity;
+architecture rom_4x4_arch of rom_4x4 is
+type ROM_type is array (0 to 4) of std_logic_vector (3 downto 0);
+ROM : ROM_type := ( 0 => x"E",
+                    1 => x"2",
+                    2 => x"F",
+                    3 => x"4");
+begin
+Data_Out <= ROM(to_integer(unsigned(address)));
+end architecture;
+
+entity rom_4x4_TB is
+end entity;
+architecture rom_4x4_TB_arch of rom_4x4_TB is
+component rom_4x4 is
+port (Address : in std_logic_vector (1 downto 0);
+      Data_Out : out std_logic_vector (3 downto 0));
+end component;
+signal Address_TB : std_logic_vector (1 downto 0);
+signal Data_Out_TB : std_logic_vector (3 downto 0);
+begin
+DUT1 : rom_4x4 port map (Address => Address_TB, Data_Out => Data_Out_TB);
+STIMULUS : process
+signal i : integer;
+begin
+for i in 0 to 4 loop
+Address_TB = std_logic_vector(to_unsigned(i,2));
+report "Data_Out = " & Data_Out'image &
+       "Address = " & Address_TB'image;
+end loop;
+end process;
+end architecture;
