@@ -15,6 +15,43 @@ F <= (A(0) and not SEl(0) and not Sel(1) and not Sel(2)) or
      (A(6) and SEl(0) and Sel(1) and not Sel(2)) or
      (A(7) and SEl(0) and Sel(1) and Sel(2));
 end architecture;
+entity mux_8to1_TB is
+end entity;
+architecture mux_8to1_TB_arch of mux_8to1_TB is
+component mux_8to1 is
+port (A : in bit_vector (7 downto 0);
+      Sel : in bit_vector (2 downto 0);
+      F : out bit);
+end component;
+signal A_TB : bit_vector (7 downto 0);
+signal Sel_TB : bit_vector (2 downto 0);
+signal F_TB : bit;
+begin
+DUT1: mux_8to1 port map (A => A_TB, Sel => Sel_TB, F => F_TB);
+STIMULUS : process
+signal i : integer;
+file Fout : TEXT open WRITE_MODE is "input_vector.txt";
+file Fin : TEXT open READ_MODE is "output_vector.txt";
+variable write_line : line;
+variable read_line : line;
+begin
+write (write_line, string'("Sel = , F = "));
+writeline (Fout, write_line);
+for i in 0 to 7 loop
+readline (Fin, read_line);
+read (read_line, A_TB);
+wait for 10 ns;
+readline (Fin, read_line);
+read (read_line, Sel_TB);
+wait for 10 ns;
+write (write_line, string'("Sel = "));
+write (write_line, Sel_TB);
+write (write_line, string'(" F = "));
+write (write_line, F_TB);
+writeline (Fout, write_line);
+end loop;
+end process;
+end architecture;
 --2.
 Library IEEE;
 using IEEE.std_logic_1164.all;
