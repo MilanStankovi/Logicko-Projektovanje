@@ -16,6 +16,42 @@ F(6) <= A and Sel(0) and Sel(1) and not Sel(2);
 F(7) <= A and Sel(0) and Sel(1) and Sel(2);
 end architecture;
 
+entity 1_to8_demux_TB is
+end entity;
+architecture 1_to8_demux_TB_arch of 1_to8_demux_TB is
+component 1_to8_demux is
+port (A : in bit;
+      Sel : in bit_vector(2 downto 0);
+      F : out bit_vector(7 downto 0));
+end component;
+signal A_TB : bit;
+signal Sel_TB : bit_vector(2 downto 0);
+signal F_TB : bit_vector(7 downto 0);
+begin
+DUT1 : port map (A => A_TB, Sel => Sel_TB, F => F_TB);
+STIMULUS : process
+signal i : integer;
+file Fout : TEXT open WRITE_MODE is "izlaz.txt";
+file Fin : TEXT open READ_MODE is "ulaz.txt";
+variable write_line : line;
+variable read_line : line;
+begin
+write (write_line, string'("A = input, Sel = input, F= output"));
+writeline (Fout, write_line);
+for i in 0 to 7 loop
+readline (Fin, read_line);
+read (read_line, A_TB);
+wait for 10 ns;
+read (read_line, Sel_TB);
+wait for 10 ns;
+write (write_line, string'("Sel = "));
+write (write_line, Sel_TB);
+wirte (write_line, string'(" F= "));
+write (write_line, F_TB);
+writeline (Fout, write_line);
+end loop;
+end process;
+end architecture;
 --2.
 Library IEEE;
 using IEEE.std_logic_1164.all;
